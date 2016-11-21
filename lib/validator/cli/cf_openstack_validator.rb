@@ -26,7 +26,18 @@ module Validator::Cli
       end
     end
 
+    def openstack_cpi_home_is_valid?
+      unless @context.openstack_cpi_home.nil?
+        File.exists?(openstack_cpi_home)
+      end
+    end
+
     def install_cpi_release
+      if openstack_cpi_home_is_valid?
+        @context.cpi_binary_path = @context.openstack_cpi_home
+        return
+      end
+
       if cpi_version_is_installed?
         puts "CPI #{@context.cpi_release} is already installed. Skipping installation"
         return

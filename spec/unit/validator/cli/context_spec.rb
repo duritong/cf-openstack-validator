@@ -12,6 +12,29 @@ module Validator::Cli
       end
     end
 
+    describe :openstack_cpi_home do
+      context 'when ENV var is set' do
+        before do
+          ENV['OPENSTACK_CPI_HOME'] = 'some-path'
+        end
+
+        after do
+          ENV.delete('OPENSTACK_CPI_HOME')
+        end
+
+        it 'returns the value of OPENSTACK_CPI_HOME environment variable' do
+          expect(subject.openstack_cpi_home).to eq('some-path')
+        end
+      end
+
+      context 'when ENV var is not set' do
+        it 'returns nil' do
+          expect(subject.openstack_cpi_home).to be(nil)
+        end
+      end
+
+    end
+
     describe :working_dir do
       context 'when path does not exist' do
         it 'creates a directory' do

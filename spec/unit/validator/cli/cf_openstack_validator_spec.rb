@@ -131,6 +131,16 @@ module Validator::Cli
     end
 
     describe '#install_cpi_release' do
+      context 'when OPENSTACK_CPI_HOME is defined' do
+        context 'and the file exists' do
+          it 'skips the cpi installation and sets the cpi_bin_path'
+        end
+
+        context 'and the file does not exists' do
+          it 'raises error'
+        end
+      end
+
       context 'when there is no cpi installed' do
         it 'compiles packages and renders cpi executable' do
           subject.install_cpi_release
