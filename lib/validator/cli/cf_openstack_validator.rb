@@ -26,16 +26,22 @@ module Validator::Cli
       end
     end
 
-    def openstack_cpi_home_is_valid?
-      unless @context.openstack_cpi_home.nil?
-        File.exists?(openstack_cpi_home)
+    def openstack_cpi_bin_is_valid?
+      unless @context.openstack_cpi_bin_from_env.nil?
+        if File.exists?(@context.openstack_cpi_bin_from_env)
+          return true
+        else
+          raise ValidatorError, "CPI executable is not found at OPENSTACK_CPI_BIN=#{@context.openstack_cpi_bin_from_env}"
+        end
       end
     end
 
     def install_cpi_release
-      if openstack_cpi_home_is_valid?
-        @context.cpi_binary_path = @context.openstack_cpi_home
+      if openstack_cpi_bin_is_valid?
+        @context.cpi_bin_path = @context.openstack_cpi_bin_from_env
         return
+      else
+        @context.cpi_bin_path = @context.default_cpi_bin_path
       end
 
       if cpi_version_is_installed?
@@ -176,7 +182,7 @@ module Validator::Cli
           'BOSH_PACKAGES_DIR' => File.join(@context.working_dir, 'packages'),
           'BOSH_OPENSTACK_CPI_LOG_PATH' => File.join(@context.working_dir, 'logs'),
           'BOSH_OPENSTACK_STEMCELL_PATH' => File.join(@context.working_dir, 'stemcell'),
-          'BOSH_OPENSTACK_CPI_PATH' => File.join(@context.working_dir, 'cpi'),
+          'BOSH_OPENSTACK_CPI_PATH' => @context.cpi_bin_path,
           'BOSH_OPENSTACK_VALIDATOR_CONFIG' => @context.config,
           'BOSH_OPENSTACK_CPI_CONFIG' => File.join(@context.working_dir, 'cpi.json'),
           'BOSH_OPENSTACK_VALIDATOR_SKIP_CLEANUP' => @context.skip_cleanup?.to_s,
@@ -254,12 +260,8 @@ bundle_cmd="\$BOSH_PACKAGES_DIR/ruby_openstack_cpi/bin/bundle"
 read -r INPUT
 echo \$INPUT | \$bundle_cmd exec \$BOSH_PACKAGES_DIR/bosh_openstack_cpi/bin/openstack_cpi #{File.join(@context.working_dir, 'cpi.json')}
 EOF
-      File.write(cpi_bin_path, cpi_content)
-      FileUtils.chmod('+x', cpi_bin_path)
-    end
-
-    def cpi_bin_path
-      File.join(@context.working_dir, 'cpi')
+      File.write(@context.cpi_bin_path, cpi_content)
+      FileUtils.chmod('+x', @context.cpi_bin_path)
     end
 
     def delete_old_cpi
@@ -267,8 +269,8 @@ EOF
         puts 'Deleting old CPI installation'
         FileUtils.rm_r(File.join(@context.extracted_cpi_release_dir))
       end
-      if File.exists?(cpi_bin_path)
-        File.delete(cpi_bin_path)
+      if File.exists?(@context.cpi_bin_path)
+        File.delete(@context.cpi_bin_path)
       end
     end
 

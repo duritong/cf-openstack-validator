@@ -12,24 +12,24 @@ module Validator::Cli
       end
     end
 
-    describe :openstack_cpi_home do
+    describe :openstack_cpi_bin do
       context 'when ENV var is set' do
         before do
-          ENV['OPENSTACK_CPI_HOME'] = 'some-path'
+          ENV['OPENSTACK_CPI_BIN'] = 'some-path'
         end
 
         after do
-          ENV.delete('OPENSTACK_CPI_HOME')
+          ENV.delete('OPENSTACK_CPI_BIN')
         end
 
-        it 'returns the value of OPENSTACK_CPI_HOME environment variable' do
-          expect(subject.openstack_cpi_home).to eq('some-path')
+        it 'returns the value of OPENSTACK_CPI_BIN environment variable' do
+          expect(subject.openstack_cpi_bin_from_env).to eq('some-path')
         end
       end
 
       context 'when ENV var is not set' do
         it 'returns nil' do
-          expect(subject.openstack_cpi_home).to be(nil)
+          expect(subject.openstack_cpi_bin_from_env).to be(nil)
         end
       end
 
