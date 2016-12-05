@@ -5,25 +5,37 @@ module Validator
 
         def compute
           Fog::Compute::OpenStack.new(convert_to_fog_params(openstack_params))
+        rescue Excon::Errors::SocketError => e
+          raise_wrapped_socket_error(openstack_params['auth_url'], e)
         end
 
         def network
           Fog::Network::OpenStack.new(convert_to_fog_params(openstack_params))
+        rescue Excon::Errors::SocketError => e
+          raise_wrapped_socket_error(openstack_params['auth_url'], e)
         end
 
         def image
           Fog::Image::OpenStack::V2.new(convert_to_fog_params(openstack_params))
         rescue Fog::OpenStack::Errors::ServiceUnavailable
           Fog::Image::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+        rescue Excon::Errors::SocketError => e
+          raise_wrapped_socket_error(openstack_params['auth_url'], e)
         end
 
         def volume
           Fog::Volume::OpenStack::V2.new(convert_to_fog_params(openstack_params))
         rescue Fog::OpenStack::Errors::ServiceUnavailable
           Fog::Volume::OpenStack::V1.new(convert_to_fog_params(openstack_params))
+        rescue Excon::Errors::SocketError => e
+          raise_wrapped_socket_error(openstack_params['auth_url'], e)
         end
 
         private
+
+        def raise_wrapped_socket_error(auth_url, e)
+          raise ValidatorError, "Could not connect to '#{auth_url}'", e.backtrace
+        end
 
         def openstack_params
           Api.configuration.openstack
